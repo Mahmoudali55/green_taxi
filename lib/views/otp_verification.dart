@@ -20,7 +20,7 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  AuthCountroller authCountroller = Get.put(AuthCountroller());
+  AuthCountroller authCountroller = Get.find<AuthCountroller>();
   @override
   void initState() {
     // TODO: implement initState

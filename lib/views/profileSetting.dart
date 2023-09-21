@@ -1,7 +1,16 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:green_texi/utils/app_color.dart';
+import 'package:green_texi/views/home_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as Path;
 
 class ProfileSettingScreen extends StatefulWidget {
   const ProfileSettingScreen({super.key});
@@ -15,6 +24,52 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
   TextEditingController homeController = TextEditingController();
   TextEditingController businessController = TextEditingController();
   TextEditingController shopController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  File? selectedImage;
+  getImage(ImageSource source) async {
+    final XFile? image = await _picker.pickImage(source: source);
+    if (image != null) {
+      selectedImage = File(image.path);
+      setState(() {});
+    }
+  }
+
+  uploadImage(File image) async {
+    String imageUrl = '';
+    String fileName = Path.basename(image.path);
+    var reference = FirebaseStorage.instance.ref().child('users/$fileName');
+    UploadTask uploadTask = reference.putFile(image);
+    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+    await taskSnapshot.ref.getDownloadURL().then((value) {
+      imageUrl = value;
+      print('Download URL:$value');
+    });
+    return imageUrl;
+  }
+
+  storgeUserInfo() async {
+    String url = await uploadImage(selectedImage!);
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'image': url,
+      'name': nameController.text,
+      'home_address': homeController.text,
+      'business_address': businessController.text,
+      'shopping_address': shopController.text,
+    }).then((value) {
+      nameController.clear();
+      homeController.clear();
+      businessController.clear();
+      shopController.clear();
+      setState(() {
+        isLoading = false;
+      });
+      Get.to(() => HomeScreen());
+    });
+  }
+
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,18 +84,36 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                 greenIntroWidgetWithoutLogos(),
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    margin: EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle, color: Color(0xffD6D6D6)),
-                    child: Center(
-                        child: Icon(
-                      Icons.camera_alt_outlined,
-                      size: 40,
-                      color: Colors.white,
-                    )),
+                  child: InkWell(
+                    onTap: () {
+                      getImage(ImageSource.camera);
+                    },
+                    child: selectedImage == null
+                        ? Container(
+                            width: 120,
+                            height: 120,
+                            margin: EdgeInsets.only(bottom: 20),
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xffD6D6D6)),
+                            child: Center(
+                                child: Icon(
+                              Icons.camera_alt_outlined,
+                              size: 40,
+                              color: Colors.white,
+                            )),
+                          )
+                        : Container(
+                            width: 120,
+                            height: 120,
+                            margin: EdgeInsets.only(bottom: 20),
+                            decoration: BoxDecoration(
+                                image: DecorationImage(
+                                    image: FileImage(selectedImage!),
+                                    fit: BoxFit.fill),
+                                shape: BoxShape.circle,
+                                color: Color(0xffD6D6D6)),
+                          ),
                   ),
                 ),
               ]),
@@ -73,7 +146,16 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                   SizedBox(
                     height: 30,
                   ),
-                  greenButton('Sumit', () {})
+                  isLoading
+                      ? Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : greenButton('Sumit', () {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          storgeUserInfo();
+                        })
                 ],
               ),
             )
@@ -100,16 +182,17 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
           width: Get.width,
           height: 50,
           decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                spreadRadius: 1,
-                blurRadius: 1,
-              ),
-            ],
-          ),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  spreadRadius: 1,
+                  blurRadius: 1,
+                ),
+              ],
+              borderRadius: BorderRadius.circular(8)),
           child: TextFormField(
+            controller: controller,
             style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

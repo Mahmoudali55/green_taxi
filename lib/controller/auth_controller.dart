@@ -1,8 +1,11 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:green_texi/views/home_screen.dart';
+import 'package:green_texi/views/profileSetting.dart';
 
 class AuthCountroller extends GetxController {
   String userUid = '';
@@ -45,5 +48,24 @@ class AuthCountroller extends GetxController {
         PhoneAuthProvider.credential(verificationId: verId, smsCode: otpNamber);
     log('LogedIn');
     await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
+  decideRoute() {
+    //step 1-check user login?
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      ///step2- check wheth user profile exists?
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .then((value) {
+        if (value.exists) {
+          Get.to(() => HomeScreen());
+        } else {
+          Get.to(() => ProfileSettingScreen());
+        }
+      });
+    }
   }
 }
