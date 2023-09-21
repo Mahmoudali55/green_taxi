@@ -1,11 +1,14 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:green_texi/views/home_screen.dart';
 import 'package:green_texi/views/profileSetting.dart';
+import 'package:path/path.dart' as Path;
 
 class AuthCountroller extends GetxController {
   String userUid = '';
@@ -13,6 +16,7 @@ class AuthCountroller extends GetxController {
   int? resendTokenId;
   bool phoneAuthCheck = false;
   dynamic credentials;
+  var isProfileUploading = false.obs;
   phoneAuth(String phone) async {
     try {
       credentials = null;
@@ -47,7 +51,9 @@ class AuthCountroller extends GetxController {
     PhoneAuthCredential credential =
         PhoneAuthProvider.credential(verificationId: verId, smsCode: otpNamber);
     log('LogedIn');
-    await FirebaseAuth.instance.signInWithCredential(credential);
+    await FirebaseAuth.instance.signInWithCredential(credential).then((value) {
+      decideRoute();
+    });
   }
 
   decideRoute() {
@@ -67,5 +73,34 @@ class AuthCountroller extends GetxController {
         }
       });
     }
+  }
+
+  uploadImage(File image) async {
+    String imageUrl = '';
+    String fileName = Path.basename(image.path);
+    var reference = FirebaseStorage.instance.ref().child('users/$fileName');
+    UploadTask uploadTask = reference.putFile(image);
+    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+    await taskSnapshot.ref.getDownloadURL().then((value) {
+      imageUrl = value;
+      print('Download URL:$value');
+    });
+    return imageUrl;
+  }
+
+  storgeUserInfo(File selectedImage, String home, String name, String business,
+      String shop) async {
+    String url = await uploadImage(selectedImage);
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'image': url,
+      'name': name,
+      'home_address': home,
+      'business_address': business,
+      'shopping_address': shop,
+    }).then((value) {
+      isProfileUploading(false);
+      Get.to(() => HomeScreen());
+    });
   }
 }

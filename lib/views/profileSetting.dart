@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:green_texi/controller/auth_controller.dart';
 import 'package:green_texi/utils/app_color.dart';
 import 'package:green_texi/views/home_screen.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,6 +25,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
   TextEditingController homeController = TextEditingController();
   TextEditingController businessController = TextEditingController();
   TextEditingController shopController = TextEditingController();
+  AuthCountroller authCountroller = Get.find<AuthCountroller>();
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
   getImage(ImageSource source) async {
@@ -33,42 +35,6 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
       setState(() {});
     }
   }
-
-  uploadImage(File image) async {
-    String imageUrl = '';
-    String fileName = Path.basename(image.path);
-    var reference = FirebaseStorage.instance.ref().child('users/$fileName');
-    UploadTask uploadTask = reference.putFile(image);
-    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
-    await taskSnapshot.ref.getDownloadURL().then((value) {
-      imageUrl = value;
-      print('Download URL:$value');
-    });
-    return imageUrl;
-  }
-
-  storgeUserInfo() async {
-    String url = await uploadImage(selectedImage!);
-    String uid = FirebaseAuth.instance.currentUser!.uid;
-    FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'image': url,
-      'name': nameController.text,
-      'home_address': homeController.text,
-      'business_address': businessController.text,
-      'shopping_address': shopController.text,
-    }).then((value) {
-      nameController.clear();
-      homeController.clear();
-      businessController.clear();
-      shopController.clear();
-      setState(() {
-        isLoading = false;
-      });
-      Get.to(() => HomeScreen());
-    });
-  }
-
-  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -146,16 +112,23 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                   SizedBox(
                     height: 30,
                   ),
-                  isLoading
+                  Obx(() => authCountroller.isProfileUploading.value
                       ? Center(
                           child: CircularProgressIndicator(),
                         )
                       : greenButton('Sumit', () {
-                          setState(() {
-                            isLoading = true;
-                          });
-                          storgeUserInfo();
-                        })
+                          if (selectedImage == null) {
+                            Get.snackbar('Warning', 'please add your image');
+                            return;
+                          }
+                          authCountroller.isProfileUploading(true);
+                          authCountroller.storgeUserInfo(
+                              selectedImage!,
+                              nameController.text,
+                              homeController.text,
+                              businessController.text,
+                              shopController.text);
+                        }))
                 ],
               ),
             )

@@ -4,8 +4,9 @@ import 'package:fl_country_code_picker/fl_country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:green_texi/views/otp_verification.dart';
-import 'package:green_texi/widgets/green_widget.dart';
-import 'package:green_texi/widgets/login_widget.dart';
+
+import '../widgets/green_widget.dart';
+import '../widgets/login_widget.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
