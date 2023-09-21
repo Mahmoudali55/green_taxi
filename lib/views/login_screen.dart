@@ -3,6 +3,7 @@
 import 'package:fl_country_code_picker/fl_country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:green_texi/views/otp_verification.dart';
 import 'package:green_texi/widgets/green_widget.dart';
 import 'package:green_texi/widgets/login_widget.dart';
 
@@ -17,6 +18,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final countryPicker = const FlCountryCodePicker();
   CountryCode countryCode =
       CountryCode(name: 'Egypte', code: 'eg', dialCode: '+20');
+  onSubmit(String? input) {
+    Get.to(() => OtpVerificationScreen(countryCode.dialCode + input!));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Null check
               if (code != null) countryCode = code;
               setState(() {});
-            })
+            }, onSubmit)
           ]),
         ),
       ),
