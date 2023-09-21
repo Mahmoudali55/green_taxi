@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:green_texi/firebase_options.dart';
 import 'package:green_texi/views/login_screen.dart';
+import 'package:green_texi/views/profileSetting.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(TextTheme),
       ),
-      home: LoginScreen(),
+      home: ProfileSettingScreen(),
     );
   }
 }
