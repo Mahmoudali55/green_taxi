@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
           right: 0,
           bottom: 0,
           child: GoogleMap(
+            zoomControlsEnabled: false,
             onMapCreated: (GoogleMapController controller) {
               mymapController = controller;
               mymapController!.setMapStyle(_mapStyle);
@@ -46,7 +47,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         bulidProfileTile(),
-        bulidProfileField()
+        bulidProfileField(),
+        bulidCurrentLocationIcon(),
+        bulidNotificationIcon(),
+        buildBottomSheet(),
       ]),
     );
   }
@@ -109,6 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         width: Get.width,
         height: 50,
+        padding: EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
@@ -125,11 +130,76 @@ class _HomeScreenState extends State<HomeScreen> {
               fontWeight: FontWeight.w600,
               color: Color(0xffA7A7A7)),
           decoration: InputDecoration(
+            hintText: 'Search for a destination',
+            helperStyle:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
             suffixIcon: Padding(
               padding: const EdgeInsets.only(left: 10),
               child: Icon(Icons.search),
             ),
             border: InputBorder.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget bulidCurrentLocationIcon() {
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 30, right: 8),
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.green,
+          child: Icon(
+            Icons.my_location,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget bulidNotificationIcon() {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 30, left: 8),
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.white,
+          child: Icon(
+            Icons.notifications,
+            color: Color(0xffC3CDD6),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildBottomSheet() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: Get.width * 0.8,
+        height: 25,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                spreadRadius: 4,
+                blurRadius: 10,
+              )
+            ],
+            borderRadius: BorderRadius.only(
+                topRight: Radius.circular(12), topLeft: Radius.circular(12))),
+        child: Center(
+          child: Container(
+            width: Get.width * 0.6,
+            height: 4,
+            color: Colors.black45,
           ),
         ),
       ),
