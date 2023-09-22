@@ -26,6 +26,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
   TextEditingController businessController = TextEditingController();
   TextEditingController shopController = TextEditingController();
   AuthCountroller authCountroller = Get.find<AuthCountroller>();
+  GlobalKey<FormState> formkay = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
   getImage(ImageSource source) async {
@@ -89,47 +90,81 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
             ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 23),
-              child: Column(
-                children: [
-                  TextFieldWidget('Name', Icons.person_outline, nameController),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  TextFieldWidget('Home', Icons.home_outlined, homeController),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  TextFieldWidget('Business Address', Icons.card_travel,
-                      businessController),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  TextFieldWidget('Shopping Center',
-                      Icons.shopping_cart_outlined, shopController),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  Obx(() => authCountroller.isProfileUploading.value
-                      ? Center(
-                          child: CircularProgressIndicator(),
-                        )
-                      : greenButton('Sumit', () {
-                          if (selectedImage == null) {
-                            Get.snackbar('Warning', 'please add your image');
-                            return;
-                          }
-                          authCountroller.isProfileUploading(true);
-                          authCountroller.storgeUserInfo(
-                              selectedImage!,
-                              nameController.text,
-                              homeController.text,
-                              businessController.text,
-                              shopController.text);
-                        }))
-                ],
+              child: Form(
+                key: formkay,
+                child: Column(
+                  children: [
+                    TextFieldWidget(
+                        'Name', Icons.person_outline, nameController,
+                        (String? input) {
+                      if (input!.isEmpty) {
+                        return 'Name is required!';
+                      }
+                      if (input.length < 5) {
+                        return 'Please enter a valid name!';
+                      }
+                      return null;
+                    }),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextFieldWidget('Home', Icons.home_outlined, homeController,
+                        (String? input) {
+                      if (input!.isEmpty) {
+                        return 'home address is required!';
+                      }
+                      return null;
+                    }),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextFieldWidget('Business Address', Icons.card_travel,
+                        businessController, (String? input) {
+                      if (input!.isEmpty) {
+                        return 'business address is required!';
+                      }
+                      return null;
+                    }),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextFieldWidget(
+                        'Shopping Center',
+                        Icons.shopping_cart_outlined,
+                        shopController, (String? input) {
+                      if (input!.isEmpty) {
+                        return 'shoping center is required!';
+                      }
+                      return null;
+                    }),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    Obx(() => authCountroller.isProfileUploading.value
+                        ? Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : greenButton('Sumit', () {
+                            if (!formkay.currentState!.validate()) {
+                              return;
+                            }
+                            if (selectedImage == null) {
+                              Get.snackbar('Warning', 'please add your image');
+                              return;
+                            }
+                            authCountroller.isProfileUploading(true);
+                            authCountroller.storgeUserInfo(
+                                selectedImage!,
+                                nameController.text,
+                                homeController.text,
+                                businessController.text,
+                                shopController.text);
+                          }))
+                  ],
+                ),
               ),
             )
           ],
@@ -138,8 +173,8 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
     );
   }
 
-  TextFieldWidget(
-      String titel, IconData iconData, TextEditingController controller) {
+  TextFieldWidget(String titel, IconData iconData,
+      TextEditingController controller, Function validator) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -165,6 +200,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
               ],
               borderRadius: BorderRadius.circular(8)),
           child: TextFormField(
+            validator: (input) => validator(input),
             controller: controller,
             style: GoogleFonts.poppins(
                 fontSize: 14,

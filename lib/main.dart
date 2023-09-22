@@ -25,12 +25,11 @@ class MyApp extends StatelessWidget {
     AuthCountroller authCountroller = Get.put(AuthCountroller());
     authCountroller.decideRoute();
     return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(TextTheme),
-      ),
-      home: LoginScreen(),
-    );
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          textTheme: GoogleFonts.poppinsTextTheme(TextTheme),
+        ),
+        home: LoginScreen());
   }
 }
